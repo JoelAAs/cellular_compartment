@@ -91,15 +91,19 @@ rule estimate_quant:
         biotin_file = "work_folder/bioID_localisation.csv",
         localisation_bait_probability = expand(
             "work_folder/localization_permutations/per_localisation/{bait_localisation}_permutations_0.9_batch_{n}.csv",
-            n = range(batches)
+            n = range(n_batches)
         )
     output:
         biotid_cdf_quant = "work_folder/bioid_quantile/bait_{bait_localisation}.csv"
     run:
-        localisation_df = pd.read_csv(
-            input.localisation_bait_probability,
-            sep="\t"
-        )
+        localisation_df_list = [
+            pd.read_csv(
+                file,
+                sep="\t"
+            ) for file in input.localisation_bait_probability
+        ]
+        localisation_df = pd.concat(localisation_df_list)
+        
         biotin_df = pd.read_csv(
             input.biotin_file,
             sep="\t"
