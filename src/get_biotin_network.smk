@@ -56,10 +56,12 @@ rule get_permutations_localisation:
                        try:
                            file_dict[row_values[0]].write(line)
                        except KeyError:
-                           output_name = f"per_localisation/{row_values[0]}_permutations_0.9.csv"
+                           output_name = f"work_folder/localization_permutations/per_localisation/{row_values[0]}_permutations_0.9.csv"
                            file_dict[row_values[0]] = open(output_name, "w")
                            file_dict[row_values[0]].write("target_desc_bait\ttarget_desc_prey\tsize_bait_prey_count\tsize_bait_count\tlikelihood_prey\tpermutation\n")
                            file_dict[row_values[0]].write(line)
+        for key in file_dict:
+            file_dict[key].close()
 
 
 rule estimate_quant:
