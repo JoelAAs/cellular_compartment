@@ -90,7 +90,7 @@ rule estimate_quant:
     input:
         biotin_file = "work_folder/bioID_localisation.csv",
         localisation_bait_probability = expand(
-            "work_folder/localization_permutations/per_localisation/{bait_localisation}_permutations_0.9_batch_{n}.csv",
+            "work_folder/localization_permutations/per_localisation/{{bait_localisation}}_permutations_0.9_batch_{n}.csv",
             n = range(n_batches)
         )
     output:
