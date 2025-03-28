@@ -60,7 +60,7 @@ rule get_permutations_localisation:
         permut_sets = lambda wc: get_localisation_set(wc)
     output:
         expand(
-            "work_folder/localization_permutations/per_localisation/{localisation}_permutations_0.9_batch_{n}.csv",
+            "work_folder/localization_permutations/per_localisation/{localisation}_permutations_0.9_batch_{{n}}.csv",
             localisation=localisation_classification
         )
     run:
@@ -103,7 +103,7 @@ rule estimate_quant:
             ) for file in input.localisation_bait_probability
         ]
         localisation_df = pd.concat(localisation_df_list)
-        
+
         biotin_df = pd.read_csv(
             input.biotin_file,
             sep="\t"
