@@ -156,6 +156,10 @@ rule aggregate_quant_data:
     run:
         with open(output.biotid_all, "w") as w:
             w.write("target_desc_bait\ttarget_desc_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tin_permutation\tin_bioid\n")
+            for localisation_file in input.all_baits_probs:
+                lines = [line for line in open(localisation_file, "r")]
+                for line in lines[1:]:
+                    w.write(line)
 
         shell("awk '(NR == 1) || (FNR > 1)' {input.all_baits_probs} > combined.csv")
 
