@@ -147,16 +147,17 @@ rule estimate_quant:
 
 rule aggregate_quant_data:
     input:
-        expand(
+        all_baits_probs = expand(
             "work_folder/bioid_quantile/bait_{bait_localisation}.csv",
-            bait_localisation = localisation_classification)
+            bait_localisation = localisation_classification
+        )
     output:
         biotid_all = "work_folder/bioid_quantile/bait_all.csv"
     run:
         with open(output.biotid_all, "w") as w:
             w.write("target_desc_bait\ttarget_desc_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tin_permutation\tin_bioid\n")
 
-        shell("awk '(NR == 1) || (FNR > 1)' {input.bait_localisation} > combined.csv")
+        shell("awk '(NR == 1) || (FNR > 1)' {input.all_baits_probs} > combined.csv")
 
 
 
