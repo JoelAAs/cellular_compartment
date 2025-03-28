@@ -32,15 +32,35 @@ localisation_classification = [
     "GO:0005815", "GO:0031988", "GO:0098590"
 
 ]
+
+def bin_it(size, n_permutations, start, batch_list):
+    if start + size >= n_permutations:
+        batch_list.append(range(start, n_permutations))
+        return batch_list
+    else:
+        end = start + size
+        batch_list.append(range(start, end))
+        return bin_it(size, n_permutations, end, batch_list)
+
+batches = bin_it(5000, n_permutations, 0, [])
+n_batches = len(batches)
+config["batches"] = batches
+
+def get_localisation_set(wc):
+    expected_input = [
+        f"work_folder/localization_permutations/set_frac_0.9_set_{i}.csv"
+        for i in config["batches"][int(wc.n)]
+    ]
+    return expected_input
+
+
+
 rule get_permutations_localisation:
     input:
-        permut_sets = expand(
-            "work_folder/localization_permutations/set_frac_0.9_set_{i}.csv",
-            i=range(n_permutations)
-        )
+        permut_sets = lambda wc: get_localisation_set(wc)
     output:
         expand(
-            "work_folder/localization_permutations/per_localisation/{localisation}_permutations_0.9.csv",
+            "work_folder/localization_permutations/per_localisation/{localisation}_permutations_0.9_batch_{n}.csv",
             localisation=localisation_classification
         )
     run:
@@ -56,7 +76,7 @@ rule get_permutations_localisation:
                        try:
                            file_dict[row_values[0]].write(line)
                        except KeyError:
-                           output_name = f"work_folder/localization_permutations/per_localisation/{row_values[0]}_permutations_0.9.csv"
+                           output_name = f"work_folder/localization_permutations/per_localisation/{row_values[0]}_permutations_0.9_batch_{wildcards.n}.csv"
                            file_dict[row_values[0]] = open(output_name, "w")
                            file_dict[row_values[0]].write("target_desc_bait\ttarget_desc_prey\tsize_bait_prey_count\tsize_bait_count\tlikelihood_prey\tpermutation\n")
                            file_dict[row_values[0]].write(line)
@@ -69,7 +89,10 @@ rule estimate_quant:
         n_permuts = n_permutations
     input:
         biotin_file = "work_folder/bioID_localisation.csv",
-        localisation_bait_probability = "work_folder/localization_permutations/per_localisation/{bait_localisation}_permutations_0.9.csv"
+        localisation_bait_probability = expand(
+            "work_folder/localization_permutations/per_localisation/{bait_localisation}_permutations_0.9_batch_{n}.csv",
+            n = range(batches)
+        )
     output:
         biotid_cdf_quant = "work_folder/bioid_quantile/bait_{bait_localisation}.csv"
     run:
@@ -103,8 +126,8 @@ rule estimate_quant:
                     biotin_observed = False
 
 
-                mu = np.mean(permuted)
-                std = np.std(permuted)
+                mu = np.mean(all_probabilities)
+                std = np.std(all_probabilities)
                 quant_value = norm.cdf(observed_value, mu, std)
                 w.write(
                     f"{wildcards.bait_localisation}\t"
@@ -129,7 +152,7 @@ rule aggregate_quant_data:
         with open(output.biotid_all, "w") as w:
             w.write("target_desc_bait\ttarget_desc_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tin_permutation\tin_bioid\n")
 
-        shell("awk '(NR == 1) || (FNR > 1)' {input} > combined.csv")
+        shell("awk '(NR == 1) || (FNR > 1)' {input.bait_localisation} > combined.csv")
 
 
 
