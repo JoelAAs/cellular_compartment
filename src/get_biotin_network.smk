@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from scipy.stats import norm
 
-n_permutations = 100000
+n_permutations = 10000
 localisation_classification = [
     "GO:0000137", "GO:0005856", "GO:0042470",
     "GO:0000138", "GO:0005886", "GO:0042579",
@@ -53,35 +53,97 @@ def get_localisation_set(wc):
     ]
     return expected_input
 
+def get_prey_likelihood(bait_prey_df):
+    bait_prey_counts = bait_prey_df.groupby(["target_desc_bait", "target_desc_prey"], as_index=False).size()
+    bait_sum = bait_prey_counts.groupby("target_desc_bait", as_index=False)["size"].sum()
+    bait_prey_counts = bait_prey_counts.merge(bait_sum, on="target_desc_bait", suffixes=("_bait_prey_count", "_bait_count"))
+    bait_prey_counts["likelihood_prey"] = bait_prey_counts["size_bait_prey_count"].div(bait_prey_counts["size_bait_count"])
+    return bait_prey_counts
+
+def read_ppi(intact, localisation_annotations, uniprot_gene_name):
+    intact_df = pd.read_csv(intact,sep="\t")
+    localisation_df = pd.read_csv(localisation_annotations,sep="\t")
+    localisation_df = localisation_df[["source", "target_desc"]]
+    gene_name_to_uniprot = pd.read_csv(uniprot_gene_name,sep="\t")
+
+    intact_df = intact_df.merge(
+        gene_name_to_uniprot,
+        left_on="bait",right_on="uniprot_id"
+    )
+
+    intact_df = intact_df.merge(
+        gene_name_to_uniprot,
+        left_on="prey",right_on="uniprot_id",
+        suffixes=("_bait", "_prey")
+    )
+    intact_df = intact_df.merge(
+        localisation_df,
+        left_on="gene_name_bait",right_on="source",
+    )
+    intact_df = intact_df.merge(
+        localisation_df,
+        left_on="gene_name_prey",right_on="source",
+        suffixes=("_bait", "_prey")
+    )
+    intact_df = intact_df[[
+        "gene_name_bait",
+        "gene_name_prey",
+        "detection_method",
+        "target_desc_bait",
+        "target_desc_prey"]
+    ]
+    return intact_df
 
 
-rule get_permutations_localisation:
+rule bioid_per_bait_localisation:
     input:
-        permut_sets = lambda wc: get_localisation_set(wc)
+        intact = "data/bait_prey_publications.csv",
+        localisation_annotations = "data/gene_attribute_edges.txt",
+        uniprot_gene_name = "data/uniprot_to_gene_name.csv"
     output:
-        expand(
-            "work_folder/localization_permutations/per_localisation/{localisation}_permutations_0.9_batch_{{n}}.csv",
-            localisation=localisation_classification
+        bioid_file = "work_folder/bioID_localisation.csv"
+    run:
+        intact_df = read_ppi(input.intact, input.localisation_annotations, input.uniprot_gene_name)
+
+        bioid_ms_ss = intact_df[intact_df["detection_method"] == "MI-1314"]
+        permutation_prey_counts = get_prey_likelihood(bioid_ms_ss)
+        permutation_prey_counts.to_csv(
+            input.bioid_file,
+            sep = "\t", index = False
+        )
+
+rule permute_per_bait_localisation:
+    params:
+        frac = 0.9,
+        other_ms_methods = [
+            "MI-0006",
+            "MI-0007",
+            "MI-0096",
+            "MI-0004",
+            "MI-0019"
+            ]
+    input:
+        intact = "data/bait_prey_publications.csv",
+        localisation_annotations = "data/gene_attribute_edges.txt",
+        uniprot_gene_name = "data/uniprot_to_gene_name.csv"
+    output:
+        permutation_sets = expand(
+            "work_folder/bait_localisation_permutation/{{localisation}}_0.9_set_{n}.csv",
+            n = range(n_permutations)
         )
     run:
-        file_dict = dict()
-        for permutation_file in input.permut_sets:
-            with open(permutation_file, "r") as f:
-                header = True
-                for line in f:
-                    if header:
-                        header = False
-                    else:
-                       row_values = line.strip().split("\t")
-                       try:
-                           file_dict[row_values[0]].write(line)
-                       except KeyError:
-                           output_name = f"work_folder/localization_permutations/per_localisation/{row_values[0]}_permutations_0.9_batch_{wildcards.n}.csv"
-                           file_dict[row_values[0]] = open(output_name, "w")
-                           file_dict[row_values[0]].write("target_desc_bait\ttarget_desc_prey\tsize_bait_prey_count\tsize_bait_count\tlikelihood_prey\tpermutation\n")
-                           file_dict[row_values[0]].write(line)
-        for key in file_dict:
-            file_dict[key].close()
+        intact_df = read_ppi(input.intact, input.localisation_annotations, input.uniprot_gene_name)
+
+        other_ms_ss = intact_df[intact_df["detection_method"].isin(params.other_ms_methods)]
+        other_ms_localisation_ss = other_ms_ss[other_ms_ss["target_desc_bait"] == wildcards.localisation]
+        for i, permutation_file in enumerate(output.permutation_sets):
+            sample_df = other_ms_localisation_ss.sample(frac=params.frac)
+            permutation_prey_counts = get_prey_likelihood(sample_df)
+            permutation_prey_counts["permutation"] = i
+            permutation_prey_counts.to_csv(
+                permutation_file,
+                sep = "\t", index = False
+            )
 
 
 rule estimate_quant:
@@ -90,11 +152,11 @@ rule estimate_quant:
     input:
         biotin_file = "work_folder/bioID_localisation.csv",
         localisation_bait_probability = expand(
-            "work_folder/localization_permutations/per_localisation/{{bait_localisation}}_permutations_0.9_batch_{n}.csv",
+            "work_folder/bait_localisation_permutation/{{localisation}}_0.9_set_{n}.csv",
             n = range(n_batches)
         )
     output:
-        biotid_cdf_quant = "work_folder/bioid_quantile/bait_{bait_localisation}.csv"
+        biotid_cdf_quant = "work_folder/bioid_quantile/bait_{localisation}.csv"
     run:
         localisation_df_list = [
             pd.read_csv(
@@ -109,20 +171,20 @@ rule estimate_quant:
             sep="\t"
         )
         with open(output.biotid_cdf_quant, "w") as w:
-            w.write("target_desc_bait\ttarget_desc_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tin_permutation\tin_bioid\n")
+            w.write("target_desc_bait\ttarget_desc_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tfrac_in_permutation\tin_bioid\n")
             for current_localisation in localisation_classification:
-                observed = True
                 biotin_observed = True
                 all_probabilities = np.zeros(n_permutations)
                 ss_df = localisation_df[localisation_df["target_desc_prey"] == current_localisation]
                 permuted = np.array(ss_df["likelihood_prey"])
-                if len(permuted) == 0:
-                    observed = False
-                all_probabilities[:len(permuted)] = permuted
+
+                frac_observed = len(permuted)/n_permutations
+                if len(permuted) != 0:
+                    all_probabilities[:len(permuted)] = permuted
 
                 observed_value = biotin_df.loc[
-                    (biotin_df["target_desc_prey"] == current_localisation) &
-                    (biotin_df["target_desc_bait"] == wildcards.bait_localisation)]["likelihood_prey"].values
+                    biotin_df["target_desc_prey"] == current_localisation
+                ]["likelihood_prey"].values
                 if len(observed_value) > 0:
                     observed_value=observed_value[0]
                 else:
@@ -140,7 +202,7 @@ rule estimate_quant:
                     f"{std}\t"
                     f"{quant_value}\t"
                     f"{observed_value}\t"
-                    f"{observed}\t"
+                    f"{frac_observed}\t"
                     f"{biotin_observed}\n"
                 )
 
