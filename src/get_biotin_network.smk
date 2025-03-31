@@ -196,7 +196,7 @@ rule estimate_quant:
                 std = np.std(all_probabilities)
                 quant_value = norm.cdf(observed_value, mu, std)
                 w.write(
-                    f"{wildcards.bait_localisation}\t"
+                    f"{wildcards.localisation}\t"
                     f"{current_localisation}\t"
                     f"{mu}\t"
                     f"{std}\t"
