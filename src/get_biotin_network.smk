@@ -33,18 +33,18 @@ localisation_classification = [
 
 ]
 
-def bin_it(size, n_permutations, start, batch_list):
-    if start + size >= n_permutations:
-        batch_list.append(range(start, n_permutations))
-        return batch_list
-    else:
-        end = start + size
-        batch_list.append(range(start, end))
-        return bin_it(size, n_permutations, end, batch_list)
-
-batches = bin_it(5000, n_permutations, 0, [])
-n_batches = len(batches)
-config["batches"] = batches
+# def bin_it(size, n_permutations, start, batch_list):
+#     if start + size >= n_permutations:
+#         batch_list.append(range(start, n_permutations))
+#         return batch_list
+#     else:
+#         end = start + size
+#         batch_list.append(range(start, end))
+#         return bin_it(size, n_permutations, end, batch_list)
+#
+# batches = bin_it(5000, n_permutations, 0, [])
+# n_batches = len(batches)
+# config["batches"] = batches
 
 def get_localisation_set(wc):
     expected_input = [
@@ -153,7 +153,7 @@ rule estimate_quant:
         biotin_file = "work_folder/bioID_localisation.csv",
         localisation_bait_probability = expand(
             "work_folder/bait_localisation_permutation/{{localisation}}_0.9_set_{n}.csv",
-            n = range(n_batches)
+            n = range(n_permutations)
         )
     output:
         biotid_cdf_quant = "work_folder/bioid_quantile/bait_{localisation}.csv"
