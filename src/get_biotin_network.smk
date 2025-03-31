@@ -183,7 +183,8 @@ rule estimate_quant:
                     all_probabilities[:len(permuted)] = permuted
 
                 observed_value = biotin_df.loc[
-                    biotin_df["target_desc_prey"] == current_localisation
+                                 (biotin_df["target_desc_prey"] == current_localisation) &
+                                 (biotin_df["target_desc_bait"] == wildcards.localisation)
                 ]["likelihood_prey"].values
                 if len(observed_value) > 0:
                     observed_value=observed_value[0]
