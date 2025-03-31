@@ -108,7 +108,7 @@ rule bioid_per_bait_localisation:
         bioid_ms_ss = intact_df[intact_df["detection_method"] == "MI-1314"]
         permutation_prey_counts = get_prey_likelihood(bioid_ms_ss)
         permutation_prey_counts.to_csv(
-            input.bioid_file,
+            output.bioid_file,
             sep = "\t", index = False
         )
 
