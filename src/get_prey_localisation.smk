@@ -15,18 +15,13 @@ def get_prey_likelihood(bait_prey_df):
 
 rule bioid_per_prey_localisation:
     input:
-        intact = "data/bait_prey_publications.csv",
-        localisation_annotations = "data/gene_attribute_edges.txt",
-        uniprot_gene_name = "data/uniprot_to_gene_name.csv",
-        common_baits = "work_folder/enrichment_analysis/bait_list_common.csv"
+        selected_df="work_folder/selected_baits.csv"
     output:
         bioid_file = "work_folder/prey_probability/bioID_localisation.csv"
     run:
-        intact_df = read_ppi(input.intact, input.localisation_annotations, input.uniprot_gene_name)
-        common_baits = pd.read_csv(input.common_baits, sep="\t")
+        intact_df = pd.read_csv(input.selected_df,sep="\t")
 
         bioid_ms_ss = intact_df[intact_df["detection_method"] == "MI-1314"]
-        bioid_ms_ss = bioid_ms_ss[bioid_ms_ss["gene_name_bait"].isin(common_baits["gene_name"])]
         permutation_prey_counts = get_prey_likelihood(bioid_ms_ss)
         permutation_prey_counts.to_csv(
             output.bioid_file,
@@ -44,23 +39,18 @@ rule permute_localisation_to_prey:
             "MI-0019"
             ]
     input:
-        intact = "data/bait_prey_publications.csv",
-        localisation_annotations = "data/gene_attribute_edges.txt",
-        uniprot_gene_name = "data/uniprot_to_gene_name.csv",
-        common_baits= "work_folder/enrichment_analysis/bait_list_common.csv"
+        selected_df="work_folder/selected_baits.csv"
     output:
         permutation_sets = expand(
             "work_folder/prey_probability/permutations/{{localisation}}_0.9_set_{n}.csv",
             n = range(n_permutations)
         )
     run:
-        intact_df = read_ppi(input.intact, input.localisation_annotations, input.uniprot_gene_name)
-        common_baits = pd.read_csv(input.common_baits,sep="\t")
+        intact_df = pd.read_csv(input.selected_df,sep="\t")
 
         ms_df = intact_df.loc[
             intact_df["detection_method"].isin(params.other_ms_methods)
         ]
-        ms_df = ms_df[ms_df["gene_name_bait"].isin(common_baits["gene_name"])]
 
         ms_localisation_df = ms_df[ms_df["target_desc_bait"] == wildcards.localisation]
         for i, permutation_file in enumerate(output.permutation_sets):

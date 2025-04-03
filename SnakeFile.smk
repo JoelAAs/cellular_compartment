@@ -1,4 +1,4 @@
-config["n_permutations"] = 1000
+config["n_permutations"] = 10000
 config["localisation"] = [
     "GO:0000137", "GO:0005856", "GO:0042470",
     "GO:0000138", "GO:0005886", "GO:0042579",
