@@ -18,13 +18,17 @@ rule bioid_per_bait_localisation:
     input:
         intact = "data/bait_prey_publications.csv",
         localisation_annotations = "data/gene_attribute_edges.txt",
-        uniprot_gene_name = "data/uniprot_to_gene_name.csv"
+        uniprot_gene_name = "data/uniprot_to_gene_name.csv",
+        common_baits = "work_folder/enrichment_analysis/bait_list_common.csv"
     output:
         bioid_file = "work_folder/localisation_probability/bioID_localisation.csv"
     run:
         intact_df = read_ppi(input.intact, input.localisation_annotations, input.uniprot_gene_name)
+        common_baits = pd.read_csv(input.common_baits,sep="\t")
 
         bioid_ms_ss = intact_df[intact_df["detection_method"] == "MI-1314"]
+        bioid_ms_ss = bioid_ms_ss[bioid_ms_ss["gene_name_bait"].isin(common_baits["gene_name"])]
+
         permutation_prey_counts = get_prey_localisation_likelihood(bioid_ms_ss)
         permutation_prey_counts.to_csv(
             output.bioid_file,
@@ -44,7 +48,8 @@ rule permute_per_bait_localisation:
     input:
         intact = "data/bait_prey_publications.csv",
         localisation_annotations = "data/gene_attribute_edges.txt",
-        uniprot_gene_name = "data/uniprot_to_gene_name.csv"
+        uniprot_gene_name = "data/uniprot_to_gene_name.csv",
+        common_baits = "work_folder/enrichment_analysis/bait_list_common.csv"
     output:
         permutation_sets = expand(
             "work_folder/localisation_probability/permutation/{{localisation}}_0.9_set_{n}.csv",
@@ -52,9 +57,12 @@ rule permute_per_bait_localisation:
         )
     run:
         intact_df = read_ppi(input.intact, input.localisation_annotations, input.uniprot_gene_name)
+        common_baits = pd.read_csv(input.common_baits,sep="\t")
 
         other_ms_ss = intact_df[intact_df["detection_method"].isin(params.other_ms_methods)]
         other_ms_localisation_ss = other_ms_ss[other_ms_ss["target_desc_bait"] == wildcards.localisation]
+        other_ms_localisation_ss = other_ms_localisation_ss[other_ms_localisation_ss["gene_name_bait"].isin(common_baits["gene_name"])]
+
         for i, permutation_file in enumerate(output.permutation_sets):
             sample_df = other_ms_localisation_ss.sample(frac=params.frac)
             permutation_prey_counts = get_prey_localisation_likelihood(sample_df)

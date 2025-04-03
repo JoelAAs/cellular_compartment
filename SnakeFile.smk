@@ -1,4 +1,4 @@
-config["n_permutations"] = 10
+config["n_permutations"] = 1000
 config["localisation"] = [
     "GO:0000137", "GO:0005856", "GO:0042470",
     "GO:0000138", "GO:0005886", "GO:0042579",
@@ -31,9 +31,14 @@ config["localisation"] = [
 
 include: "src/get_biotin_network.smk"
 include: "src/get_prey_localisation.smk"
-
+include: "src/misc_analysis.smk"
+include: "src/enrichment_analysis.smk"
+include: "src/bait_distribution.smk"
 
 rule all:
     input:
+        "work_folder/enrichment_analysis/plots/venn_diagram_doid.png",
         "work_folder/localisation_probability/bait_all.csv",
-        "work_folder/prey_probability/bait_all.csv"
+        "work_folder/prey_probability/bait_all.csv",
+        # "work_folder/localisation_data/iou.csv",
+        # "work_folder/localisation_data/shared.csv"

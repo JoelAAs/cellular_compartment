@@ -50,23 +50,30 @@ rule bait_enrichment:
         bioid_baits = "work_folder/enrichment_analysis/bait_lists/bioid_baits.csv",
         ms_baits = "work_folder/enrichment_analysis/bait_lists/ms_baits.csv"
     output:
-        bioid_bait_enrichment_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_bioid.csv",
-        ms_bait_enrichment_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_ms.csv",
-        venn_plot_bait = "work_folder/enrichment_analysis/plots/venn_diagram_bait.png",
-        venn_plot_doid = "work_folder/enrichment_analysis/plots/venn_diagram_doid.png"
+        bioid_bait_enrichment_go_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_GO_bioid.csv",
+        bioid_bait_enrichment_do_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_DO_bioid.csv",
+        ms_bait_enrichment_go_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_GO_ms.csv",
+        ms_bait_enrichment_do_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_DO_ms.csv",
+        venn_plot_go = "work_folder/enrichment_analysis/plots/venn_diagram_goid.png",
+        venn_plot_doid = "work_folder/enrichment_analysis/plots/venn_diagram_doid.png",
+        venn_plot_bait= "work_folder/enrichment_analysis/plots/venn_diagram_bait.png"
     shell:
         """
         Rscript src/enrichment_analysis.R \
             {input.bioid_baits} \
             {input.ms_baits} \
-            {output.bioid_bait_enrichment_output} \
-            {output.ms_bait_enrichment_output} \
-            {output.venn_plot_bait} \
+            {output.bioid_bait_enrichment_go_output} \
+            {output.bioid_bait_enrichment_do_output} \
+            {output.ms_bait_enrichment_go_output} \
+            {output.ms_bait_enrichment_do_output} \
+            {output.venn_plot_go} \
             {output.venn_plot_doid} \
+            {output.venn_plot_bait} \
             {params.n_top_baits} 
         """
 
 
-rule prey_localisation_enrichment:
-    input:
+#rule prey_localisation_enrichment:
+#    input:
 
+#args <- c("work_folder/enrichment_analysis/bait_lists/bioid_baits.csv", "work_folder/enrichment_analysis/bait_lists/ms_baits.csv", "work_folder/enrichment_analysis/enrichment/bait_enrichment_GO_bioid.csv", "work_folder/enrichment_analysis/enrichment/bait_enrichment_DO_bioid.csv", "work_folder/enrichment_analysis/enrichment/bait_enrichment_GO_ms.csv","work_folder/enrichment_analysis/enrichment/bait_enrichment_DO_ms.csv", "work_folder/enrichment_analysis/plots/venn_diagram_goid.png", "work_folder/enrichment_analysis/plots/venn_diagram_doid.png", "work_folder/enrichment_analysis/plots/venn_diagram_bait.png", "100")

@@ -172,3 +172,9 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+.Rhistory
+.idea/
+.snakemake/
+work_folder/
+data/

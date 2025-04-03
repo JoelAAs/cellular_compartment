@@ -1,37 +1,10 @@
-library(EnrichDO)
-library(org.Hs.eg.db)
+source("src/enrichment_support_functions.R")
 library(tidyverse)
 library(ggVennDiagram)
-library(clusterProfiler)
 
 
 ### Functions
-map_entrez <- function(gene_name_df) {
-  entrez_ids <- mapIds(
-    org.Hs.eg.db, keys = gene_name_df$gene_name_prey,
-    column = "ENTREZID", keytype = "SYMBOL")
-  stacked = stack(entrez_ids)
-  stacked_df = as.data.frame(stacked)
-  colnames(stacked_df) <- c("entrez_id", "gene_name_prey")
-  gene_name_df$entrez_id = stacked_df$entrez_id
-  return(gene_name_df)
-}
-enrichment_DO_results <- function(df){
-  genes = unique(df$entrez_id)
-  enrichTest <- EnrichDO::doEnrich(genes, method = "BH")
-  return(enrichTest@enrich)
-}
-enrichment_GO_results <- function(df){
-  genes = unique(df$entrez_id)
-  ego <- enrichGO(gene          = genes,
-                  OrgDb         = org.Hs.eg.db,
-                  ont           = "CC",
-                  pAdjustMethod = "BH",
-                  pvalueCutoff  = 0.01,
-                  qvalueCutoff  = 0.05,
-                  readable      = TRUE)
-  return(ego@result)
-}
+
 
 enrichment_per_bait_group <- function(df){
   i = 1
