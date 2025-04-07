@@ -6,9 +6,9 @@ n_permutations = config["n_permutations"]
 
 
 def get_prey_likelihood(bait_prey_df):
-    bait_prey_counts = bait_prey_df.groupby(["target_desc_bait", "gene_name_prey"], as_index=False).size()
-    bait_sum = bait_prey_counts.groupby(["target_desc_bait"], as_index=False)["size"].sum()
-    bait_prey_counts = bait_prey_counts.merge(bait_sum, on="target_desc_bait", suffixes=("_prey_count", "_bait_localisation_count"))
+    bait_prey_counts = bait_prey_df.groupby(["localisation_bait", "gene_name_prey"], as_index=False).size()
+    bait_sum = bait_prey_counts.groupby(["localisation_bait"], as_index=False)["size"].sum()
+    bait_prey_counts = bait_prey_counts.merge(bait_sum, on="localisation_bait", suffixes=("_prey_count", "_bait_localisation_count"))
     bait_prey_counts["likelihood_prey"] = bait_prey_counts["size_prey_count"].div(bait_prey_counts["size_bait_localisation_count"])
     return bait_prey_counts
 
@@ -52,7 +52,7 @@ rule permute_localisation_to_prey:
             intact_df["detection_method"].isin(params.other_ms_methods)
         ]
 
-        ms_localisation_df = ms_df[ms_df["target_desc_bait"] == wildcards.localisation]
+        ms_localisation_df = ms_df[ms_df["localisation_bait"] == wildcards.localisation]
         for i, permutation_file in enumerate(output.permutation_sets):
             sample_df = ms_localisation_df.sample(frac=params.frac)
             permutation_prey_counts = get_prey_likelihood(sample_df)
@@ -86,7 +86,7 @@ rule estimate_quant_prey:
             sep="\t"
         )
         with open(output.biotid_cdf_quant, "w") as w:
-            w.write("target_desc_bait\tgene_name_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tfrac_in_permutation\tin_bioid\n")
+            w.write("localisation_bait\tgene_name_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tfrac_in_permutation\tin_bioid\n")
             for current_gene_prey in localisation_df["gene_name_prey"].unique():
                 biotin_observed = True
                 all_probabilities = np.zeros(n_permutations)
@@ -99,7 +99,7 @@ rule estimate_quant_prey:
 
                 observed_value = biotin_df.loc[
                                  (biotin_df["gene_name_prey"] == current_gene_prey) &
-                                 (biotin_df["target_desc_bait"] == wildcards.localisation)
+                                 (biotin_df["localisation_bait"] == wildcards.localisation)
                 ]["likelihood_prey"].values
                 if len(observed_value) > 0:
                     observed_value=observed_value[0]
@@ -132,7 +132,7 @@ rule aggregate_prey_data:
         biotid_all = "work_folder/prey_probability/bait_all.csv"
     run:
         with open(output.biotid_all, "w") as w:
-            w.write("target_desc_bait\tgene_name_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tin_permutation\tin_bioid\n")
+            w.write("localisation_bait\tgene_name_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tin_permutation\tin_bioid\n")
             for localisation_file in input.all_baits_probs:
                 lines = [line for line in open(localisation_file, "r")]
                 for line in lines[1:]:

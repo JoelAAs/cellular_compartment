@@ -3,7 +3,7 @@ import pandas as pd
 def read_ppi(intact, localisation_annotations, uniprot_gene_name):
     intact_df = pd.read_csv(intact,sep="\t")
     localisation_df = pd.read_csv(localisation_annotations,sep="\t")
-    localisation_df = localisation_df[["source", "target_desc"]]
+    #localisation_df = localisation_df[["source", "target_desc"]]
     gene_name_to_uniprot = pd.read_csv(uniprot_gene_name,sep="\t")
 
     intact_df = intact_df.merge(
@@ -18,18 +18,20 @@ def read_ppi(intact, localisation_annotations, uniprot_gene_name):
     )
     intact_df = intact_df.merge(
         localisation_df,
-        left_on="gene_name_bait",right_on="source",
+        left_on="gene_name_bait",right_on="gene_name",
     )
+    del intact_df["gene_name"]
     intact_df = intact_df.merge(
         localisation_df,
-        left_on="gene_name_prey",right_on="source",
+        left_on="gene_name_prey",right_on="gene_name",
         suffixes=("_bait", "_prey")
     )
+    del intact_df["gene_name"]
     intact_df = intact_df[[
         "gene_name_bait",
         "gene_name_prey",
         "detection_method",
-        "target_desc_bait",
-        "target_desc_prey"]
+        "localisation_bait",
+        "localisation_prey"]
     ]
     return intact_df

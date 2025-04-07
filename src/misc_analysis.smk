@@ -3,13 +3,13 @@ from support_functions import read_ppi
 rule get_selected_subset:
     input:
         intact = "data/bait_prey_publications.csv",
-        localisation_annotations = "data/gene_attribute_edges.txt",
+        localisation_annotations = "data/localisation/gene_to_location.csv",
         uniprot_gene_name = "data/uniprot_to_gene_name.csv",
         common_baits = "work_folder/enrichment_analysis/bait_list_common.csv"
     output:
         selected_df = "work_folder/selected_baits.csv"
     run:
-        intact_df = read_ppi(input.intact,input.localisation_annotations,input.uniprot_gene_name)
+        intact_df = read_ppi(input.intact, input.localisation_annotations, input.uniprot_gene_name)
         common_baits = pd.read_csv(input.common_baits,sep="\t")
         intact_df = intact_df[intact_df["gene_name_bait"].isin(common_baits["gene_name"])]
         intact_df.to_csv(output.selected_df, sep="\t", index=False)
