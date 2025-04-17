@@ -16,7 +16,9 @@ rule get_method_localisation_subsets:
         localisation_df = get_localisation_data(
             input.bait_prey_data,
             input.localisation_data,
-            input.uniprot_to_gene_name_data)
+            input.uniprot_to_gene_name_data,
+            config["methods_considered"]
+        )
 
         for current_method in config["methods_considered"]:
             for current_localisation in config["localisations_considered"]:
@@ -41,10 +43,17 @@ rule get_probability_of_match:
         localisation_df = pd.read_csv(input.localisation_data, sep="\t")
 
         alpha_prior, beta_prior = get_prior_information(localisation_df, wildcards.localisation, params.pseudo_n)
-        p_est, cred_int = get_beta_posterior_values(method_localisation_ss, alpha_prior, beta_prior)
+        p_est, cred_int, n, k, h_norm = get_beta_posterior_values(method_localisation_ss, alpha_prior, beta_prior)
 
         with open(output.method_local_pval, "w") as w:
-            w.write(f"{wildcards.method}\t{wildcards.localisation}\t{p_est}\t{cred_int[0]}\t{cred_int[1]}\n")
+            w.write(f"{wildcards.method}\t"
+                    f"{wildcards.localisation}\t"
+                    f"{p_est}\t"
+                    f"{cred_int[0]}\t"
+                    f"{cred_int[1]}\t"
+                    f"{n}\t"
+                    f"{k}\t"
+                    f"{h_norm}\n")
 
 rule aggregate_p_estimations:
     input:
@@ -57,7 +66,11 @@ rule aggregate_p_estimations:
         aggregated_values = "work_folder/method_localisation/beta_estimation/method_localisation_p_estimation.csv"
     run:
         with open(output.aggregated_values, "w") as w:
-            w.write("\t".join(["detection_method", "localisation_bait", "p_estimation", "low_0.95", "high_0.95"]) + "\n")
+            w.write("\t".join([
+                "detection_method", "localisation_bait", "p_estimation",
+                "low_0.95", "high_0.95", "n_ppis",
+                "n_unique_bait", "normalised_entropy"
+            ]) + "\n")
         for estimation_file in input.p_estimations:
             shell("cat {estimation_file} >> {output.aggregated_values}")
 
