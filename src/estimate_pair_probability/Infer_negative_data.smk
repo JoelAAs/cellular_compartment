@@ -1,5 +1,6 @@
+import numpy as np
 import pandas as pd
-import dask.dataframe as dd
+import multiprocessing as mp
 
 def get_localisation_data(bait_prey_df, localisation_df, prot_to_gene_df):
     bait_prey_df = bait_prey_df.merge(prot_to_gene_df, left_on="bait", right_on="uniprot_id")
@@ -141,6 +142,17 @@ def ppi_pair_binom_p(row, pseudo_n):
             "y2h_ppi_p": p_est_y2h
         })])
 
+
+def _process_chunk(df):
+    return df.apply(
+        ppi_pair_binom_p,axis=1,args=(1,))
+
+def parallel_process_df(df_chunks):
+    with mp.Pool() as pool:
+        results = pool.map(_process_chunk, df_chunks)
+
+    return pd.concat(results)
+
 rule n_tests_per_baits:
     params:
         min_annotated_genes = 200, # arbitrary, but if the assumption of inter localisation interactions being "more" common a higher number is needed
@@ -220,7 +232,8 @@ rule n_tests_per_baits:
 
 rule estimate_probability_of_prey:
     params:
-        pseudo_n = 5
+        pseudo_n = 5,
+        n_cores = 20
     input:
         inferred_data_per_bait_full = "work_folder/inferred_negative_localisation.csv",
         ms_localisation_probability = "work_folder_MS/localisation/any/beta_estimation.csv",
@@ -228,6 +241,9 @@ rule estimate_probability_of_prey:
     output:
         pair_probability = "work_folder/ppi_localisation_prior_probability.csv"
     run:
+
+
+
         study_count_df   = pd.read_csv(input.inferred_data_per_bait_full, sep="\t")
         ms_localisation  = pd.read_csv(input.ms_localisation_probability, sep="\t")
         ms_localisation = ms_localisation[
@@ -244,16 +260,12 @@ rule estimate_probability_of_prey:
         del full_localisation["localisation_bait"]
         del full_localisation["localisation_prey"]
 
-        study_count_df = study_count_df.iloc[:100000]
         study_count_df  = study_count_df.merge(full_localisation, on="localisation")
-        study_count_ddf = dd.from_pandas(study_count_df, npartitions=5)
-        print("mapping")
-        probability_estimate_ddf = study_count_ddf.map_partitions(
-            lambda  df: df.apply(
-            ppi_pair_binom_p, axis=1, args=(1,))
-        ).compute(scheduler="threads")
+        partitions = np.array_split(study_count_df, params.n_cores)
 
-        probability_estimate_ddf.to_csv(
+        probability_estimate_df = parallel_process_df(partitions)
+
+        probability_estimate_df.to_csv(
             output.pair_probability,
             sep="\t",
             index=False
