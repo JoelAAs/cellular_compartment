@@ -1,0 +1,65 @@
+project: "Y2H"
+
+methods_considered:
+  - "MI-0397" # (two hybrid array)
+  - "MI-1112" # (two hybrid prey pooling approach)
+  - "MI-0398" # (two hybrid pooling approach)
+  - "MI-0018" # (two hybrid)
+  - "MI-0399" # (two hybrid fragment pooling approach) NOTE: One-to-one
+  - "MI-1356" # (validated two hybrid)
+  - "MI-2215" # (barcode fusion genetics two hybrid)
+  - "MI-1113" # (two hybrid bait and prey pooling approach)
+
+cell_lines: 
+  - "yeast"
+
+localisations_considered:
+  - 'Acrosome'
+  - 'Actin-filaments'
+  - 'Aggresome'
+  - 'Annulus'
+  - 'Basal-body'
+  - 'Calyx'
+  - 'Cell-Junctions'
+  - 'Centriolar-satellite'
+  - 'Centrosome'
+  - 'Cleavage-furrow'
+  - 'Connecting-piece'
+  - 'Cytokinetic-bridge'
+  - 'Cytoplasmic-bodies'
+  - 'Cytosol'
+  - 'End-piece'
+  - 'Endoplasmic-reticulum'
+  - 'Endosomes'
+  - 'Equatorial-segment'
+  - 'Flagellar-centriole'
+  - 'Focal-adhesion-sites'
+  - 'Golgi-apparatus'
+  - 'Intermediate-filaments'
+  - 'Kinetochore'
+  - 'Lipid-droplets'
+  - 'Lysosomes'
+  - 'Microtubule-ends'
+  - 'Microtubules'
+  - 'Mid-piece'
+  - 'Midbody'
+  - 'Midbody-ring'
+  - 'Mitochondria'
+  - 'Mitotic-chromosome'
+  - 'Mitotic-spindle'
+  - 'Nuclear-bodies'
+  - 'Nuclear-membrane'
+  - 'Nuclear-speckles'
+  - 'Nucleoli'
+  - 'Nucleoli-fibrillar-center'
+  - 'Nucleoli-rim'
+  - 'Nucleoplasm'
+  - 'Perinuclear-theca'
+  - 'Peroxisomes'
+  - 'Plasma-membrane'
+  - 'Primary-cilium'
+  - 'Primary-cilium-tip'
+  - 'Primary-cilium-transition-zone'
+  - 'Principal-piece'
+  - 'Rods-and-Rings'
+  - 'Vesicles'

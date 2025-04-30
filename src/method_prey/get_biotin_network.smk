@@ -16,9 +16,9 @@ def get_prey_localisation_likelihood(bait_prey_df):
 
 rule bioid_per_bait_localisation:
     input:
-        selected_df="work_folder/selected_baits.csv"
+        selected_df="work_folder_{project}/selected_baits.csv"
     output:
-        bioid_file = "work_folder/localisation_probability/bioID_localisation.csv"
+        bioid_file = "work_folder_{project}/localisation_probability/bioID_localisation.csv"
     run:
         intact_df = pd.read_csv(input.selected_df,sep="\t")
 
@@ -44,7 +44,7 @@ rule permute_per_bait_localisation:
         selected_df="work_folder/selected_baits.csv"
     output:
         permutation_sets = expand(
-            "work_folder/localisation_probability/permutation/{{localisation}}_0.9_set_{n}.csv",
+            "work_folder_{{project}}/localisation_probability/permutation/{{localisation}}_0.9_set_{n}.csv",
             n = range(n_permutations)
         )
     run:
@@ -67,11 +67,11 @@ rule estimate_quant_localisation:
     input:
         biotin_file = "work_folder/localisation_probability/bioID_localisation.csv",
         localisation_bait_probability = expand(
-            "work_folder/localisation_probability/permutation/{{localisation}}_0.9_set_{n}.csv",
+            "work_folder_{{project}}/localisation_probability/permutation/{{localisation}}_0.9_set_{n}.csv",
             n = range(n_permutations)
         )
     output:
-        biotid_cdf_quant = "work_folder/localisation_probability/bioid_quantile/bait_{localisation}.csv"
+        biotid_cdf_quant = "work_folder_{project}/localisation_probability/bioid_quantile/bait_{localisation}.csv"
     run:
         localisation_df_list = [
             pd.read_csv(
@@ -126,11 +126,11 @@ rule estimate_quant_localisation:
 rule aggregate_quant_data:
     input:
         all_baits_probs = expand(
-            "work_folder/localisation_probability/bioid_quantile/bait_{bait_localisation}.csv",
+            "work_folder_{{project}}/localisation_probability/bioid_quantile/bait_{bait_localisation}.csv",
             bait_localisation = config["localisation"]
         )
     output:
-        biotid_all = "work_folder/localisation_probability/bait_all.csv"
+        biotid_all = "work_folder_{project}/localisation_probability/bait_all.csv"
     run:
         with open(output.biotid_all, "w") as w:
             w.write("localisation_bait\tlocalisation_prey\tprobability_mean\tprobability_std\tquantile_value\tobserved_value\tin_permutation\tin_bioid\n")

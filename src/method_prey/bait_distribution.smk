@@ -5,10 +5,10 @@ rule get_shared_distribution:
     params:
         limit_pval = 0.05
     input:
-        bioid_baits="work_folder/enrichment_analysis/bait_lists/bioid_baits.csv",
-        ms_baits="work_folder/enrichment_analysis/bait_lists/ms_baits.csv"
+        bioid_baits="work_folder_{project}/enrichment_analysis/bait_lists/bioid_baits.csv",
+        ms_baits="work_folder_{project}/enrichment_analysis/bait_lists/ms_baits.csv"
     output:
-        shared = "work_folder/enrichment_analysis/bait_list_common.csv"
+        shared = "work_folder_{project}/enrichment_analysis/bait_list_common.csv"
     run:
         bioid_bait_df = pd.read_csv(
             input.bioid_baits

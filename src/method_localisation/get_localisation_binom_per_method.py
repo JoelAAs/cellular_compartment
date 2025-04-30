@@ -2,16 +2,16 @@ import pandas as pd
 from scipy.stats import beta
 import math
 
-def get_localisation_data(bait_prey_data, localisation_data, uniprot_to_gene_name_data, detection_methods):
+def get_localisation_data(bait_prey_data, localisation_data, detection_methods):
     intact_df = pd.read_csv(bait_prey_data, sep = "\t")
     localisation_df = pd.read_csv(localisation_data, sep = "\t")
-    prot_to_gene_df = pd.read_csv(uniprot_to_gene_name_data, sep="\t")
+    #prot_to_gene_df = pd.read_csv(uniprot_to_gene_name_data, sep="\t")
 
     intact_df = intact_df[intact_df["detection_method"].isin(detection_methods)]
 
-    intact_df = intact_df.merge(prot_to_gene_df, left_on="bait", right_on="uniprot_id")
-    del intact_df["uniprot_id"]
-    intact_df = intact_df.merge(prot_to_gene_df, left_on="prey", right_on="uniprot_id", suffixes=("_bait", "_prey"))
+    # intact_df = intact_df.merge(prot_to_gene_df, left_on="bait", right_on="uniprot_id")
+    # del intact_df["uniprot_id"]
+    # intact_df = intact_df.merge(prot_to_gene_df, left_on="prey", right_on="uniprot_id", suffixes=("_bait", "_prey"))
 
     intact_df = intact_df.merge(localisation_df, left_on="gene_name_bait", right_on="gene_name")
     del intact_df["gene_name"]
@@ -41,7 +41,6 @@ def get_beta_posterior_values(test_df, alpha_prior, beta_prior):
 
 
 def get_prior_information(localisation_df, current_localisation, pseudo_n=10):
-    # TODO check_overlap
     alpha_min = 1/localisation_df.shape[0]
     alpha_prior = localisation_df.groupby("localisation").size()/localisation_df.shape[0]*pseudo_n
     alpha_prior = alpha_prior[current_localisation]

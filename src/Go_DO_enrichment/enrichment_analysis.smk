@@ -15,9 +15,9 @@ rule get_bait_list:
         localisation_annotations = "data/gene_attribute_edges.txt",
         uniprot_gene_name = "data/uniprot_to_gene_name.csv"
     output:
-        bioid_baits="work_folder/enrichment_analysis/bait_lists/bioid_baits.csv",
-        ms_baits="work_folder/enrichment_analysis/bait_lists/ms_baits.csv",
-        shared_balanced="work_folder/enrichment_analysis/bait_lists/shared_baits.csv"
+        bioid_baits="work_folder_{project}/enrichment_analysis/bait_lists/bioid_baits.csv",
+        ms_baits="work_folder_{project}/enrichment_analysis/bait_lists/ms_baits.csv",
+        shared_balanced="work_folder_{project}/enrichment_analysis/bait_lists/shared_baits.csv"
     run:
         intact_df = pd.read_csv(input.intact, sep="\t")
 
@@ -47,16 +47,16 @@ rule bait_enrichment:
     params:
         n_top_baits = 100
     input:
-        bioid_baits = "work_folder/enrichment_analysis/bait_lists/bioid_baits.csv",
-        ms_baits = "work_folder/enrichment_analysis/bait_lists/ms_baits.csv"
+        bioid_baits = "work_folder_{project}/enrichment_analysis/bait_lists/bioid_baits.csv",
+        ms_baits = "work_folder_{project}/enrichment_analysis/bait_lists/ms_baits.csv"
     output:
-        bioid_bait_enrichment_go_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_GO_bioid.csv",
-        bioid_bait_enrichment_do_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_DO_bioid.csv",
-        ms_bait_enrichment_go_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_GO_ms.csv",
-        ms_bait_enrichment_do_output = "work_folder/enrichment_analysis/enrichment/bait_enrichment_DO_ms.csv",
-        venn_plot_go = "work_folder/enrichment_analysis/plots/venn_diagram_goid.png",
-        venn_plot_doid = "work_folder/enrichment_analysis/plots/venn_diagram_doid.png",
-        venn_plot_bait= "work_folder/enrichment_analysis/plots/venn_diagram_bait.png"
+        bioid_bait_enrichment_go_output = "work_folder_{project}/enrichment_analysis/enrichment/bait_enrichment_GO_bioid.csv",
+        bioid_bait_enrichment_do_output = "work_folder_{project}/enrichment_analysis/enrichment/bait_enrichment_DO_bioid.csv",
+        ms_bait_enrichment_go_output = "work_folder_{project}/enrichment_analysis/enrichment/bait_enrichment_GO_ms.csv",
+        ms_bait_enrichment_do_output = "work_folder_{project}/enrichment_analysis/enrichment/bait_enrichment_DO_ms.csv",
+        venn_plot_go = "work_folder_{project}/enrichment_analysis/plots/venn_diagram_goid.png",
+        venn_plot_doid = "work_folder_{project}/enrichment_analysis/plots/venn_diagram_doid.png",
+        venn_plot_bait= "work_folder_{project}/enrichment_analysis/plots/venn_diagram_bait.png"
     shell:
         """
         Rscript src/enrichment_analysis.R \
@@ -71,9 +71,3 @@ rule bait_enrichment:
             {output.venn_plot_bait} \
             {params.n_top_baits} 
         """
-
-
-#rule prey_localisation_enrichment:
-#    input:
-
-#args <- c("work_folder/enrichment_analysis/bait_lists/bioid_baits.csv", "work_folder/enrichment_analysis/bait_lists/ms_baits.csv", "work_folder/enrichment_analysis/enrichment/bait_enrichment_GO_bioid.csv", "work_folder/enrichment_analysis/enrichment/bait_enrichment_DO_bioid.csv", "work_folder/enrichment_analysis/enrichment/bait_enrichment_GO_ms.csv","work_folder/enrichment_analysis/enrichment/bait_enrichment_DO_ms.csv", "work_folder/enrichment_analysis/plots/venn_diagram_goid.png", "work_folder/enrichment_analysis/plots/venn_diagram_doid.png", "work_folder/enrichment_analysis/plots/venn_diagram_bait.png", "100")

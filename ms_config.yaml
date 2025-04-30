@@ -1,0 +1,66 @@
+project: "MS"
+
+methods_considered:
+  - "MI-0006"
+  - "MI-0007"
+  - "MI-0096"
+  - "MI-0676"
+  - "MI-1314"
+
+cell_lines:
+  - "CVCL_0063"
+  - "CVCL_0291"
+  - "CVCL_0030"
+  - "CVCL_0045"
+  - "any"
+
+localisations_considered:
+  - 'Acrosome'
+  - 'Actin-filaments'
+  - 'Aggresome'
+  - 'Annulus'
+  - 'Basal-body'
+  - 'Calyx'
+  - 'Cell-Junctions'
+  - 'Centriolar-satellite'
+  - 'Centrosome'
+  - 'Cleavage-furrow'
+  - 'Connecting-piece'
+  - 'Cytokinetic-bridge'
+  - 'Cytoplasmic-bodies'
+  - 'Cytosol'
+  - 'End-piece'
+  - 'Endoplasmic-reticulum'
+  - 'Endosomes'
+  - 'Equatorial-segment'
+  - 'Flagellar-centriole'
+  - 'Focal-adhesion-sites'
+  - 'Golgi-apparatus'
+  - 'Intermediate-filaments'
+  - 'Kinetochore'
+  - 'Lipid-droplets'
+  - 'Lysosomes'
+  - 'Microtubule-ends'
+  - 'Microtubules'
+  - 'Mid-piece'
+  - 'Midbody'
+  - 'Midbody-ring'
+  - 'Mitochondria'
+  - 'Mitotic-chromosome'
+  - 'Mitotic-spindle'
+  - 'Nuclear-bodies'
+  - 'Nuclear-membrane'
+  - 'Nuclear-speckles'
+  - 'Nucleoli'
+  - 'Nucleoli-fibrillar-center'
+  - 'Nucleoli-rim'
+  - 'Nucleoplasm'
+  - 'Perinuclear-theca'
+  - 'Peroxisomes'
+  - 'Plasma-membrane'
+  - 'Primary-cilium'
+  - 'Primary-cilium-tip'
+  - 'Primary-cilium-transition-zone'
+  - 'Principal-piece'
+  - 'Rods-and-Rings'
+  - 'Vesicles'
