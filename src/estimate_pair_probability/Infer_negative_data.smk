@@ -184,7 +184,7 @@ rule n_tests_per_baits:
 
         localisations_considered = localisation_df.groupby("localisation", as_index=False).size()
         localisations_considered = localisations_considered[
-            localisations_considered["size"] > 200]["localisation"].tolist()
+            localisations_considered["size"] > params.min_annotated_genes]["localisation"].tolist()
 
         bait_prey_df_ms  = bait_prey_df[bait_prey_df["detection_method"].isin(params.ms_methods)]
         bait_prey_df_y2h = bait_prey_df[bait_prey_df["detection_method"].isin(params.y2h_methods)]
@@ -195,6 +195,7 @@ rule n_tests_per_baits:
             "localisation",
             "n_tests",
             "n_observed"
+            "detection_method"
         ]) + "\n"
         with open(output.inferred_data_per_bait_ms, "w") as w:
             w.write(header)
@@ -203,7 +204,7 @@ rule n_tests_per_baits:
 
         for current_localisation in localisations_considered:
             localisation_genes = localisation_df[
-                localisation_df["localisation"] == current_localisation]["gene_name"]
+                localisation_df["localisation"] == current_localisation]["gene_name"].tolist()
             localisation_ms_ss  = bait_prey_df_ms[bait_prey_df_ms["localisation_bait"] == current_localisation].copy()
             localisation_y2h_ss = bait_prey_df_y2h[bait_prey_df_y2h["localisation_bait"] == current_localisation].copy()
 
