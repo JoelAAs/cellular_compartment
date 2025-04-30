@@ -221,13 +221,13 @@ rule n_tests_per_baits:
 
 rule estimate_probability_of_prey:
     params:
-        pseudo_n = 10
+        pseudo_n = 5
     input:
         inferred_data_per_bait_full = "work_folder/inferred_negative_localisation.csv",
         ms_localisation_probability = "work_folder_MS/localisation/any/beta_estimation.csv",
         y2h_localisation_probability = "work_folder_Y2H/localisation/yeast/beta_estimation.csv"
     output:
-        pair_probability = ""
+        pair_probability = "work_folder/ppi_localisation_prior_probability.csv"
     run:
         study_count_df   = pd.read_csv(input.inferred_data_per_bait_full, sep="\t")
         ms_localisation  = pd.read_csv(input.ms_localisation_probability, sep="\t")
@@ -246,7 +246,7 @@ rule estimate_probability_of_prey:
         del full_localisation["localisation_prey"]
 
         study_count_df  = study_count_df.merge(full_localisation, on="localisation")
-        study_count_ddf = dd.from_pandas(study_count_df, npartitions=16)
+        study_count_ddf = dd.from_pandas(study_count_df, npartitions=30)
         probability_estimate_ddf = study_count_ddf.map_partitions(
             lambda  df: df.apply(
             ppi_pair_binom_p, axis=1, args=(1,))
