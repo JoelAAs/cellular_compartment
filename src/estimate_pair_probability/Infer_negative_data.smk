@@ -194,7 +194,7 @@ rule n_tests_per_baits:
             "gene_name_prey",
             "localisation",
             "n_tests",
-            "n_observed"
+            "n_observed",
             "detection_method"
         ]) + "\n"
         with open(output.inferred_data_per_bait_ms, "w") as w:
