@@ -1,6 +1,5 @@
 import pandas as pd
 import dask.dataframe as dd
-from dask.multiprocessing import get
 
 def get_localisation_data(bait_prey_df, localisation_df, prot_to_gene_df):
     bait_prey_df = bait_prey_df.merge(prot_to_gene_df, left_on="bait", right_on="uniprot_id")
@@ -134,14 +133,13 @@ def ppi_pair_binom_p(row, pseudo_n):
 
     p_est_weighted = row["n_tests_ms"]/(row["n_tests_ms"] + row["n_tests_y2h"])*p_est_ms + row["n_tests_y2h"]/(row["n_tests_ms"] + row["n_tests_y2h"])*p_est_y2h
 
-    return pd.Series({
-        "gene_name_bait": row["gene_name_bait"],
-        "gene_name_prey": row["gene_name_prey"],
-        "localisation": row["localisation"],
-        "weighted_ppi_p": p_est_weighted,
-        "ms_ppi_p": p_est_ms,
-        "y2h_ppi_p": p_est_y2h
-    })
+    return pd.concat([
+        row,
+        pd.Series({
+            "weighted_ppi_p": p_est_weighted,
+            "ms_ppi_p": p_est_ms,
+            "y2h_ppi_p": p_est_y2h
+        })])
 
 rule n_tests_per_baits:
     params:
@@ -246,19 +244,16 @@ rule estimate_probability_of_prey:
         del full_localisation["localisation_bait"]
         del full_localisation["localisation_prey"]
 
+        study_count_df = study_count_df.iloc[:100000]
         study_count_df  = study_count_df.merge(full_localisation, on="localisation")
-        study_count_ddf = dd.from_pandas(study_count_df, npartitions=30)
+        study_count_ddf = dd.from_pandas(study_count_df, npartitions=5)
+        print("mapping")
         probability_estimate_ddf = study_count_ddf.map_partitions(
             lambda  df: df.apply(
             ppi_pair_binom_p, axis=1, args=(1,))
         ).compute(scheduler="threads")
-        study_count_df = study_count_df.merge(probability_estimate_ddf, on=[
-            "gene_name_bait",
-            "gene_name_prey",
-            "localisation"
-        ])
 
-        study_count_df.to_csv(
+        probability_estimate_ddf.to_csv(
             output.pair_probability,
             sep="\t",
             index=False
